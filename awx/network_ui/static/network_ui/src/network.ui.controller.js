@@ -281,14 +281,8 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
   $scope.site_controller.delegate_channel = new fsm.Channel($scope.site_controller,
                                                                $scope.rack_controller,
                                                                $scope);
-  $scope.buttons_controller.delegate_channel = new fsm.Channel($scope.buttons_controller,
-                                                               $scope.site_controller,
-                                                               $scope);
-  $scope.time_controller.delegate_channel = new fsm.Channel($scope.time_controller,
-                                                            $scope.buttons_controller,
-                                                            $scope);
   $scope.app_toolbox_controller.delegate_channel = new fsm.Channel($scope.app_toolbox_controller,
-                                                            $scope.time_controller,
+                                                            $scope.site_controller,
                                                             $scope);
   $scope.inventory_toolbox_controller.delegate_channel = new fsm.Channel($scope.inventory_toolbox_controller,
                                                             $scope.app_toolbox_controller,
@@ -299,8 +293,14 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
   $scope.site_toolbox_controller.delegate_channel = new fsm.Channel($scope.site_toolbox_controller,
                                                             $scope.rack_toolbox_controller,
                                                             $scope);
+  $scope.buttons_controller.delegate_channel = new fsm.Channel($scope.buttons_controller,
+                                                               $scope.site_toolbox_controller,
+                                                               $scope);
+  $scope.time_controller.delegate_channel = new fsm.Channel($scope.time_controller,
+                                                            $scope.buttons_controller,
+                                                            $scope);
   $scope.mode_controller.delegate_channel = new fsm.Channel($scope.mode_controller,
-                                                            $scope.site_toolbox_controller,
+                                                            $scope.time_controller,
                                                             $scope);
 
   $scope.first_channel = new fsm.Channel(null,
@@ -661,7 +661,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
     //
     $scope.onToggleToolboxButtonLeft = function (button) {
         console.log(button.name);
-        $scope.first_controller.handle_message("ToggleToolbox", {});
+        $scope.first_channel.send("ToggleToolbox", {});
         $scope.action_icons[0].fsm.handle_message("Disable", {});
         $scope.action_icons[1].fsm.handle_message("Enable", {});
         $scope.overall_toolbox_collapsed = !$scope.overall_toolbox_collapsed;
@@ -669,7 +669,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
 
     $scope.onToggleToolboxButtonRight = function (button) {
         console.log(button.name);
-        $scope.first_controller.handle_message("ToggleToolbox", {});
+        $scope.first_channel.send("ToggleToolbox", {});
         $scope.action_icons[0].fsm.handle_message("Enable", {});
         $scope.action_icons[1].fsm.handle_message("Disable", {});
         $scope.overall_toolbox_collapsed = !$scope.overall_toolbox_collapsed;
@@ -771,19 +771,19 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
 
     // Context Menu Buttons
     $scope.context_menu_buttons = [
-        new models.ContextMenuButton("Edit", 210, 200, 160, 26, $scope.onDetailsContextButton),
-        new models.ContextMenuButton("Details", 236, 231, 160, 26, $scope.onDetailsContextButton)
+        new models.ContextMenuButton("Edit", 210, 200, 160, 26, $scope.onDetailsContextButton, $scope),
+        new models.ContextMenuButton("Details", 236, 231, 160, 26, $scope.onDetailsContextButton, $scope)
     ];
 
     // Context Menus
     $scope.context_menus = [
-        new models.ContextMenu('HOST', 210, 200, 160, 64, $scope.contextMenuCallback, true, $scope.context_menu_buttons)
+        new models.ContextMenu('HOST', 210, 200, 160, 64, $scope.contextMenuCallback, true, $scope.context_menu_buttons, $scope)
     ];
 
     // Icons
     $scope.action_icons = [
-        new models.ActionIcon("chevron-left", 170, $scope.graph.height/2, 16, $scope.onToggleToolboxButtonLeft, true),
-        new models.ActionIcon("chevron-right", 15, $scope.graph.height/2, 16, $scope.onToggleToolboxButtonRight, false)
+        new models.ActionIcon("chevron-left", 170, $scope.graph.height/2, 16, $scope.onToggleToolboxButtonLeft, true, $scope),
+        new models.ActionIcon("chevron-right", 15, $scope.graph.height/2, 16, $scope.onToggleToolboxButtonRight, false, $scope)
     ];
 
 	$scope.onDownloadTraceButton = function (button) {
@@ -802,7 +802,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
       new models.Button("LAYOUT", button_offset + 440, 48, 70, 30, $scope.onLayoutButton, $scope),
       new models.Button("CONFIGURE", button_offset + 520, 48, 90, 30, $scope.onConfigureButton, $scope),
       new models.Button("EXPORT YAML", button_offset + 620, 48, 120, 30, $scope.onExportYamlButton, $scope),
-      new models.Button("DOWNLOAD TRACE", button_offset + 740, 48, 120, 30, $scope.onDownloadTraceButton, $scope),
+      new models.Button("DOWNLOAD TRACE", button_offset + 750, 48, 150, 30, $scope.onDownloadTraceButton, $scope),
     ];
 
     var LAYERS_X = 160;
