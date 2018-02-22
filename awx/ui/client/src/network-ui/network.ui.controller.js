@@ -679,7 +679,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         $scope.first_channel.send('DetailsPanelClose', {});
     };
 
-    $scope.$on('hostUpdateSaved', (e, host) => {
+    $scope.$on('awxNet-hostUpdateSaved', (e, host) => {
         if (host.variables !== "" && $scope.selected_devices.length === 1) {
             host.data = jsyaml.safeLoad(host.variables);
             $scope.selected_devices[0].type = host.data.type;
@@ -691,7 +691,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
             $scope.first_channel.send('DetailsPanel', {});
             $scope.removeContextMenu();
             $scope.update_toolbox_heights();
-            $scope.$emit('showDetails', item, canAdd);
+            $scope.$emit('awxNet-showDetails', item, canAdd);
         }
 
         // show details for devices
@@ -778,7 +778,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
             index = $scope.devices.indexOf(devices[i]);
             if (index !== -1) {
                 $scope.devices.splice(index, 1);
-                $scope.$emit('removeSearchOption', devices[i]);
+                $scope.$emit('awxNet-removeSearchOption', devices[i]);
                 $scope.send_control_message(new messages.DeviceDestroy($scope.client_id,
                                                                                  devices[i].id,
                                                                                  devices[i].x,
@@ -865,7 +865,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         $scope.action_icons[0].fsm.handle_message("Disable", {});
         $scope.action_icons[1].fsm.handle_message("Enable", {});
         $scope.overall_toolbox_collapsed = !$scope.overall_toolbox_collapsed;
-        $scope.$emit('overall_toolbox_collapsed');
+        $scope.$emit('awxNet-overall_toolbox_collapsed');
     };
 
     $scope.onToggleToolboxButtonRight = function (button) {
@@ -873,22 +873,22 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         $scope.action_icons[0].fsm.handle_message("Enable", {});
         $scope.action_icons[1].fsm.handle_message("Disable", {});
         $scope.overall_toolbox_collapsed = !$scope.overall_toolbox_collapsed;
-        $scope.$emit('overall_toolbox_collapsed');
+        $scope.$emit('awxNet-overall_toolbox_collapsed');
     };
 
-    $scope.$on('toolbarButtonEvent', function(e, functionName){
+    $scope.$on('awxNet-toolbarButtonEvent', function(e, functionName){
         $scope[`on${functionName}Button`]();
     });
 
-    $scope.$on('SearchDropdown', function(){
+    $scope.$on('awxNet-SearchDropdown', function(){
         $scope.first_channel.send('SearchDropdown', {});
     });
 
-    $scope.$on('SearchDropdownClose', function(){
+    $scope.$on('awxNet-SearchDropdownClose', function(){
         $scope.first_channel.send('SearchDropdownClose', {});
     });
 
-    $scope.$on('search', function(e, device){
+    $scope.$on('awxNet-search', function(e, device){
 
         var num_frames = 30;
         var searched;
@@ -944,7 +944,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         $scope.animations.push(pan_animation);
     };
 
-    $scope.$on('jumpTo', function(e, zoomLevel) {
+    $scope.$on('awxNet-jumpTo', function(e, zoomLevel) {
         var v_center = $scope.to_virtual_coordinates($scope.graph.width/2, $scope.graph.height/2);
         switch (zoomLevel){
             case 'site':
@@ -962,7 +962,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         }
     });
 
-    $scope.$on('zoom', (e, zoomPercent) => {
+    $scope.$on('awxNet-zoom', (e, zoomPercent) => {
         let v_center = $scope.to_virtual_coordinates($scope.graph.width/2, $scope.graph.height/2);
         let scale = Math.pow(10, (zoomPercent - 120) / 40)
         $scope.jump_to_animation(v_center.x, v_center.y, scale, false);
@@ -1857,7 +1857,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         }
 
         $scope.updateInterfaceDots();
-        $scope.$emit('instatiateSelect', $scope.devices);
+        $scope.$emit('awxNet-instatiateSelect', $scope.devices);
         $scope.$emit('awxNet-breadcrumbGroups', $scope.breadcrumbGroups());
     };
 
