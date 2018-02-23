@@ -51,6 +51,7 @@
         </g>
         <g transform="translate(-50,-50)">
             <circle
+                id="{{item.type + '_' + item.id + '_' + item.name}}-highlightedSquare"
                 cx="50"
                 cy="50"
                 r="50"

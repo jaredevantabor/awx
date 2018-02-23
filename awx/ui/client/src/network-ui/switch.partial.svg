@@ -52,6 +52,7 @@
 
         <g transform="translate(-50,-50)">
             <rect
+                id="{{item.type + '_' + item.id + '_' + item.name}}-highlightedSquare"
                 ry=20
                 rx=20
                 width=100

@@ -53,31 +53,41 @@
            class="NetworkUI--construction"></line>
     </g>
 </g>
-<rect ng-attr-width="{{item.width(scaledX)}}"
+<rect
+      id="{{item.type + '_' + item.id + '_' + item.name}}-highlightedSquare"
+      ng-attr-width="{{item.width(scaledX)}}"
       ng-attr-height="{{item.height(scaledY)}}"
       ng-attr-x="{{item.left_extent(scaledX)}}"
       ng-attr-y="{{item.top_extent(scaledY)}}"
       ng-attr-class="{{item.selected && 'NetworkUI__group--selected' || 'NetworkUI--hidden'}}"/>
 
-<rect ng-attr-width="10"
+<rect
+      id="{{item.type + '_' + item.id + '_' + item.name}}-highlightedSquare"
+      ng-attr-width="10"
       ng-attr-height="10"
       ng-attr-x="{{item.left_extent(scaledX)}}"
       ng-attr-y="{{item.top_extent(scaledY)}}"
       ng-attr-class="{{item.selected && 'NetworkUI__group--selected' || 'NetworkUI--hidden'}}"/>
 
-<rect ng-attr-width="10"
+<rect
+      id="{{item.type + '_' + item.id + '_' + item.name}}-highlightedSquare"
+      ng-attr-width="10"
       ng-attr-height="10"
       ng-attr-x="{{item.right_extent(scaledX) - 10}}"
       ng-attr-y="{{item.top_extent(scaledY)}}"
       ng-attr-class="{{item.selected && 'NetworkUI__group--selected' || 'NetworkUI--hidden'}}"/>
 
-<rect ng-attr-width="10"
+<rect
+      id="{{item.type + '_' + item.id + '_' + item.name}}-highlightedSquare"
+      ng-attr-width="10"
       ng-attr-height="10"
       ng-attr-x="{{item.right_extent(scaledX) - 10}}"
       ng-attr-y="{{item.bottom_extent(scaledY) - 10}}"
       ng-attr-class="{{item.selected && 'NetworkUI__group--selected' || 'NetworkUI--hidden'}}"/>
 
-<rect ng-attr-width="10"
+<rect
+      id="{{item.type + '_' + item.id + '_' + item.name}}-highlightedSquare"
+      ng-attr-width="10"
       ng-attr-height="10"
       ng-attr-x="{{item.left_extent(scaledX)}}"
       ng-attr-y="{{item.bottom_extent(scaledY) - 10}}"

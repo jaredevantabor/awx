@@ -7,8 +7,8 @@
             <i class="fa fa-times-circle"></i>
         </button>
     </div>
-    <div class="Networking-keyPanelOption" ng-repeat="group in vm.groups_on_screen">
-        <div class="Networking-keySymbol">a</div>
+    <div class="Networking-groupPanelOption" ng-repeat="group in vm.groups_on_screen" ng-click="selctGroup(group)" ng-class="{'Networking-groupPanelOption--selected' : group.selected}">
+        <div class="Networking-keySymbol" ng-style="{'background-color':group.color}"></div>
         <div class="Networking-keySymbolLabel">{{group.name}}</div>
     </div>
 </div>

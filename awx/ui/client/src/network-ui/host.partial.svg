@@ -51,12 +51,28 @@
         </g>
         <g transform="translate(-50,-30)">
             <rect
+                id="{{item.type + '_' + item.id + '_' + item.name}}-highlightedSquare"
                 ry=20
                 rx=20
                 width=100
                 height=60
                 ng-attr-class="{{item.selected || item.remote_selected ? item.selected && item.remote_selected ? 'NetworkUI__host--selected-conflict' : item.selected ? 'NetworkUI__host--selected' : 'NetworkUI__host--remote-selected' : 'NetworkUI__host--background'}}">
             </rect>
+            <!-- <g ng-repeat="group in groupsOnScreen() | orderBy:predicate:reverse track by $index"> -->
+            <g ng-repeat="group in groupsOnScreen() track by $index">
+                <rect
+                    id="{{item.type + '_' + item.id + '_' + item.name + '_' + group.name + '_' + group.id}}"
+                    ng-if="group.selected"
+                    ng-style="{'stroke':group.color}"
+                    style="stroke-width:7;fill:none"
+                    ng-attr-rx="{{20+(($index+2 ) * 2) }}"
+                    ng-attr-ry="{{20+(($index+2 ) * 2) }}"
+                    ng-attr-x="{{($index+1) * -7 }}"
+                    ng-attr-y="{{($index+1) * -7 }}"
+                    ng-attr-width={{(($index)*10)+117}}
+                    ng-attr-height={{(($index)*10)+77}}>
+                </rect>
+            </g>
             <g transform="scale(2)">
             	<path
                     class="NetworkUI__host"

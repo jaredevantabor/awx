@@ -17,7 +17,12 @@ export default [
             scope.groupPanelBoolean = true;
             scope.hideGroupsPanel = function(){
                 scope.groupPanelBoolean = !scope.groupPanelBoolean;
-            }
+            };
+
+            scope.selctGroup = function(group){
+                console.log(group);
+                this.$parent.$broadcast('awxNet-selectGroup', group);
+            };
 
             function init(){
                 //Make the DIV element draggagle:

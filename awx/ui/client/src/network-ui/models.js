@@ -439,6 +439,7 @@ function Group(id, name, type, x1, y1, x2, y2, selected) {
     this.links = [];
     this.groups = [];
     this.streams = [];
+    this.color = '#'+Math.floor(Math.random()*16777215).toString(16);
     this.icon_size = type === 'site' ? 500 : 100;
 }
 exports.Group = Group;

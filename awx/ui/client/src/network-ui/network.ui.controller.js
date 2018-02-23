@@ -1265,6 +1265,43 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         return groupsOnScreen;
     };
 
+    $scope.$on('awxNet-selectGroup', (e, selectedGroup) => {
+        for(var i = 0; i < $scope.groups.length; i++){
+            let group = $scope.groups[i];
+            if(group.id === selectedGroup.id){
+                group.selected = !group.selected;
+                if(group.selected){
+                    $scope.selected_groups.push(group);
+                    let string = `#${group.type}_${group.id}_${group.name}-highlightedSquare`;
+                    $(string).css('stroke', group.color);
+                    for(let j = 0; j < group.devices.length; j++){
+                        let device = group.devices[j];
+                        device.selected = true;
+                        $scope.selected_devices.push(device);
+                    }
+                    for(let k = 0; k < group.groups.length; k++){
+                        group.groups[k].selected = true;
+                        $scope.selected_groups.push(group.groups[k]);
+                        let string = `#${group.groups[k].type}_${group.groups[k].id}_${group.groups[k].name}-highlightedSquare`;
+                        $(string).css('stroke', group.color);
+                    }
+                }
+                else if (!group.selected){
+                    $scope.selected_groups.splice(i, 1);
+                    for(let j = 0; j < group.devices.length; j++){
+                        let device = group.devices[j];
+                        device.selected = false;
+                        $scope.selected_devices.splice(j, 1);
+                    }
+                    for(let k = 0; k < group.groups.length; k++){
+                        group.groups[k].selected = false;
+                        $scope.selected_groups.splice(k, 1);
+                    }
+                }
+            }
+        }
+    });
+
     $scope.forDevice = function(device_id, data, fn) {
         var i = 0;
         for (i = 0; i < $scope.devices.length; i++) {
