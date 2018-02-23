@@ -3,6 +3,7 @@
 import atFeaturesNetworking from './network-nav/main';
 import networkDetailsDirective from './network-details/main';
 import networkZoomWidget from './zoom-widget/main';
+import networkGroupsPanelDirective from './network-groups-panel/main';
 
 //console.log = function () { };
 var angular = require('angular');
@@ -37,7 +38,8 @@ var networkUI = angular.module('networkUI', [
         'monospaced.mousewheel',
         atFeaturesNetworking,
         networkDetailsDirective.name,
-        networkZoomWidget.name
+        networkZoomWidget.name,
+        networkGroupsPanelDirective.name
     ])
     .controller('NetworkUIController', NetworkUIController.NetworkUIController)
     .directive('awxNetCursor', cursor.cursor)

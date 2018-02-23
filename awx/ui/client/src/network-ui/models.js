@@ -672,14 +672,33 @@ Group.prototype.is_in_breadcrumb = function(viewport){
     var viewportY2 = viewport.bottom_extent();
     var viewportX2 = viewport.right_extent();
 
-    if (viewportX1 > groupX1 &&
-        viewportY1 > groupY1 &&
-        viewportX2 < groupX2 &&
-        viewportY2 < groupY2) {
-            this.on_screen = true;
+    if (groupX1  < viewportX1 &&
+        groupY1  < viewportY1 &&
+        groupX2 > viewportX2  &&
+        groupY2 > viewportY2) {
             return true;
     } else {
-        this.on_screen = false;
+        return false;
+    }
+};
+
+Group.prototype.is_in_viewport = function(viewport){
+    var groupY1 = this.top_extent();
+    var groupX1 = this.left_extent();
+    var groupY2 = this.bottom_extent();
+    var groupX2 = this.right_extent();
+
+    var viewportY1 = viewport.top_extent();
+    var viewportX1 = viewport.left_extent();
+    var viewportY2 = viewport.bottom_extent();
+    var viewportX2 = viewport.right_extent();
+
+    if (groupX1  > viewportX1 &&
+        groupY1  > viewportY1 &&
+        groupX2 < viewportX2  &&
+        groupY2 < viewportY2) {
+            return true;
+    } else {
         return false;
     }
 };

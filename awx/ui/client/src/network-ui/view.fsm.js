@@ -84,6 +84,7 @@ _Scale.prototype.onMouseWheel = function (controller, msg_type, message) {
       item.enabled = false;
       controller.scope.$emit('awxNet-UpdateZoomWidget', controller.scope.current_scale, true);
       controller.scope.$emit('awxNet-breadcrumbGroups', controller.scope.breadcrumbGroups());
+      controller.scope.$emit('awxNet-groupsOnScreen', controller.scope.groupsOnScreen());
       controller.scope.updatePanAndScale();
       controller.changeState(Ready);
 };
@@ -110,6 +111,8 @@ _Pan.prototype.onMouseMove = function (controller) {
     controller.scope.panY = (controller.scope.mouseY - controller.scope.pressedY) + controller.scope.lastPanY;
     controller.scope.updateScaledXY();
     controller.scope.updatePanAndScale();
+    controller.scope.$emit('awxNet-breadcrumbGroups', controller.scope.breadcrumbGroups());
+    controller.scope.$emit('awxNet-groupsOnScreen', controller.scope.groupsOnScreen());
 };
 
 _Pan.prototype.onMouseUp = function (controller) {

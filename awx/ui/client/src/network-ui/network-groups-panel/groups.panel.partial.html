@@ -1,0 +1,14 @@
+<div id="Networking-groupPanel" class="Networking-groupPanel" ng-show="groupPanelBoolean" ng-class="{'Networking-groupPanel--expanded' : vm.rightPanelIsExpanded}">
+    <div id="Networking-groupPanelHeader" class="Networking-groupPanelHeader" ng-if="groupPanelBoolean">
+        <div class="Networking-groupPanelTitle">
+            GROUPS
+        </div>
+        <button ng-click="hideGroupsPanel()" type="button" class="Networking-GroupsPanelClose close">
+            <i class="fa fa-times-circle"></i>
+        </button>
+    </div>
+    <div class="Networking-keyPanelOption" ng-repeat="group in vm.groups_on_screen">
+        <div class="Networking-keySymbol">a</div>
+        <div class="Networking-keySymbolLabel">{{group.name}}</div>
+    </div>
+</div>

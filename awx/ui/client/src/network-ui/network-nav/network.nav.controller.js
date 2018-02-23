@@ -48,6 +48,10 @@ function NetworkingController (models, $state, $scope, strings, CreateSelect2) {
         vm.breadcrumb_groups = _.sortBy(groups, 'distance').reverse();
     });
 
+    $scope.$on('awxNet-groupsOnScreen', (e, groups) => {
+        vm.groups_on_screen = _.sortBy(groups, 'distance').reverse();
+    });
+
     $scope.$on('awxNet-instatiateSelect', (e, devices) => {
         for(var i = 0; i < devices.length; i++){
             let device = devices[i];

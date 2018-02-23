@@ -22,14 +22,7 @@
                 <button class="Networking-toolbarButton" ng-click="vm.redirectButtonHandler('RunTests')">RUN TESTS</button>
             </div>
             <div class="Networking-toolbarRightSide">
-                <div class="Networking-searchBarContainer">
-                    <select id="networking-search"
-                        ng-model="device"
-                        ng-options="device.label group by device.type | capitalize for device in devices | orderBy:'label' "
-                        style="width:100%">
-                            <option></option>
-                    </select>
-                </div>
+
                 <div class="Networking-keyContainer">
                     <button ng-click="vm.key()" type="button" class="Networking-toolbarIcon" ng-class="{'Networking-toolbarIcon--selected' : vm.keyPanelExpanded}">
                         <i class="fa fa-key"></i>
@@ -114,6 +107,19 @@
                         </div>
                     </div>
                 </div>
+                <div class="Networking-groupPanelIconContainer">
+                    <button ng-click="hideGroupsPanel()" type="button" class="Networking-toolbarIcon" ng-class="{'Networking-toolbarIcon--selected Networking-groupPanelToolbarIcon--selected' : groupPanelBoolean}">
+                        <i class="fa fa-object-group"></i>
+                    </button>
+                </div>
+                <div class="Networking-searchBarContainer">
+                    <select id="networking-search"
+                        ng-model="device"
+                        ng-options="device.label group by device.type | capitalize for device in devices | orderBy:'label' "
+                        style="width:100%">
+                            <option></option>
+                    </select>
+                </div>
             </div>
         </div>
         <div class="Networking-toolbar Networking-breadCrumbBar">
@@ -135,6 +141,7 @@
 <div class="Networking-canvasPanel">
     <awx-network-ui></awx-network-ui>
 </div>
+<awx-net-groups-panel></awx-net-groups-panel>
 <div class="Networking-zoomPanel" ng-class="{'Networking-zoomPanel--expanded' : vm.rightPanelIsExpanded}">
     <awx-net-zoom-widget></awx-net-zoom-widget>
 </div>

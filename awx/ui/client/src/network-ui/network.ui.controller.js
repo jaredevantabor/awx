@@ -1253,6 +1253,18 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         return breadcrumbGroups;
     };
 
+    $scope.groupsOnScreen = function(){
+        let groupsOnScreen = [];
+        for(var i = 0; i < $scope.groups.length; i++){
+            let group = $scope.groups[i];
+            if(group.is_in_viewport($scope.view_port)){
+                group.distance = util.distance(group.x1, group.y1, group.x2, group.y2);
+                groupsOnScreen.push(group);
+            }
+        }
+        return groupsOnScreen;
+    };
+
     $scope.forDevice = function(device_id, data, fn) {
         var i = 0;
         for (i = 0; i < $scope.devices.length; i++) {
@@ -1859,6 +1871,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         $scope.updateInterfaceDots();
         $scope.$emit('awxNet-instatiateSelect', $scope.devices);
         $scope.$emit('awxNet-breadcrumbGroups', $scope.breadcrumbGroups());
+        $scope.$emit('awxNet-groupsOnScreen', $scope.groupsOnScreen());
     };
 
     $scope.updateInterfaceDots = function() {
