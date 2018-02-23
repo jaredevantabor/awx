@@ -296,7 +296,7 @@ def get_group(group_id):
     return response.json()
 
 
-def create_group(id, name, x1, y1, x2, y2, topology, type,):
+def create_group(id, name, x1, y1, x2, y2, topology, type, inventory_group_id=0,):
     headers = {'content-type': 'application/json'}
     response = requests.post(util.get_url() + "/network_ui/api/v1/group/", data=json.dumps(dict(id=id,
                                                                                                 name=name,
@@ -306,6 +306,7 @@ def create_group(id, name, x1, y1, x2, y2, topology, type,):
                                                                                                 y2=y2,
                                                                                                 topology=topology,
                                                                                                 type=type,
+                                                                                                inventory_group_id=inventory_group_id,
                                                                                                 )),
                              verify=util.get_verify(),
                              auth=util.get_auth(),
@@ -313,7 +314,7 @@ def create_group(id, name, x1, y1, x2, y2, topology, type,):
     return response.json()
 
 
-def update_group(group_id, id=None, name=None, x1=None, y1=None, x2=None, y2=None, topology=None, type=None,):
+def update_group(group_id, id=None, name=None, x1=None, y1=None, x2=None, y2=None, topology=None, type=None, inventory_group_id=None,):
     headers = {'content-type': 'application/json'}
     data = dict(id=id,
                 name=name,
@@ -323,6 +324,7 @@ def update_group(group_id, id=None, name=None, x1=None, y1=None, x2=None, y2=Non
                 y2=y2,
                 topology=topology,
                 type=type,
+                inventory_group_id=inventory_group_id,
                 )
     data = {x: y for x, y in data.iteritems() if y is not None}
     response = requests.patch(util.get_url() + "/network_ui/api/v1/group/" + str(group_id) + "/",

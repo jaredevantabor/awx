@@ -24,12 +24,25 @@ var keybindings = require('./keybindings.fsm.js');
 var details_panel_fsm = require('./details.panel.fsm.js');
 var svg_crowbar = require('./svg-crowbar.js');
 var ReconnectingWebSocket = require('reconnectingwebsocket');
+var nunjucks = require('nunjucks');
 
-var NetworkUIController = function($scope, $document, $location, $window, $http,
-    $q, $state, ProcessErrors, ConfigService, rbacUiControlService) {
+var NetworkUIController = function($scope,
+                                   $document,
+                                   $location,
+                                   $window,
+                                   $http,
+                                   $q,
+                                   $state,
+                                   ProcessErrors,
+                                   ConfigService,
+                                   rbacUiControlService,
+                                   HostsService,
+                                   GroupsService) {
 
   window.scope = $scope;
   var i = 0;
+
+  $scope.nunjucks = nunjucks;
 
   $scope.http = $http;
 
@@ -123,12 +136,14 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
   $scope.current_tests = [];
   $scope.current_test = null;
   $scope.testing = false;
+  $scope.template_building = false;
   $scope.version = null;
   $scope.test_events = [];
   $scope.test_results = [];
   $scope.test_errors = [];
   $scope.streams = [];
   $scope.animations = [];
+  $scope.sequences = {};
   $scope.view_port = {'x': 0,
                       'y': 0,
                       'width': 0,
@@ -260,25 +275,44 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
   //Inventory Toolbox Setup
   $scope.inventory_toolbox = new models.ToolBox(0, 'Inventory', 'device', 0, toolboxTopMargin, 200, toolboxHeight);
   if (!$scope.disconnected) {
-      console.log($location.protocol() + "://" + $location.host() + ':' + $location.port());
-      console.log($scope.my_location);
       $http.get('/api/v2/inventories/' + $scope.inventory_id + '/hosts/')
            .then(function(response) {
+               var devices_by_name = {};
+               var i = 0;
+               for (i = 0; i < $scope.devices.length; i++) {
+                   devices_by_name[$scope.devices[i].name] = $scope.devices[i];
+               }
                let hosts = response.data.results;
-               for(var i = 0; i<hosts.length; i++){
+               for(i = 0; i<hosts.length; i++) {
                    try {
+                       var device_type = null;
+                       var device_name = null;
+                       var device = null;
                        let host = hosts[i];
-                       console.log(host);
                        if (host.variables !== "") {
                            host.data = jsyaml.safeLoad(host.variables);
-                           if (host.data.type === undefined) {
-                               host.data.type = 'unknown';
+                       } else {
+                           host.data = {};
+                       }
+                       if (host.data.awx === undefined) {
+                           device_type = 'unknown';
+                           device_name = host.name;
+                       } else {
+                           if (host.data.awx.type === undefined) {
+                               device_type = 'unknown';
+                           } else {
+                               device_type = host.data.awx.type;
                            }
-                           if (host.data.name === undefined) {
-                               host.data.name = host.name;
+                           if (host.data.awx.name === undefined) {
+                               device_name = host.name;
+                           } else {
+                               device_name = host.data.awx.name;
                            }
-                           var device = new models.Device(0, host.data.name, 0, 0, host.data.type, host.id, host.variables);
+                       }
+                       if (devices_by_name[device_name] === undefined) {
+                           device = new models.Device(0, device_name, 0, 0, device_type, host.id);
                            device.icon = true;
+                           device.variables = JSON.stringify(host.data);
                            $scope.inventory_toolbox.items.push(device);
                        }
                    } catch (error) {
@@ -287,7 +321,6 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
                }
            })
            .catch(({data, status}) => {
-               console.log([data, status]);
                ProcessErrors($scope, data, status, null, { hdr: 'Error!', msg: 'Failed to get host data: ' + status });
            });
   }
@@ -819,7 +852,8 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
                                                                             group.y1,
                                                                             group.x2,
                                                                             group.y2,
-                                                                            group.name));
+                                                                            group.name,
+                                                                            group.group_id));
         }
 
         if($scope.current_scale <= 0.5){
@@ -899,22 +933,18 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         }
         searched.selected = true;
         $scope.selected_devices.push(searched);
-        //console.log(searched);
         $scope.jump_to_animation(searched.x, searched.y, 1.0);
     });
 
     $scope.jump_to_animation = function(jump_to_x, jump_to_y, jump_to_scale, updateZoom) {
         $scope.cancel_animations();
         var v_center = $scope.to_virtual_coordinates($scope.graph.width/2, $scope.graph.height/2);
-        //console.log({v_center: v_center});
         $scope.jump.from_x = v_center.x;
         $scope.jump.from_y = v_center.y;
         $scope.jump.to_x = jump_to_x;
         $scope.jump.to_y = jump_to_y;
         var distance = util.distance(v_center.x, v_center.y, jump_to_x, jump_to_y);
-        //console.log({distance: distance});
         var num_frames = 30 * Math.floor((1 + 4 * distance / (distance + 3000)));
-        //console.log({num_frames: num_frames});
         var scale_animation = new models.Animation($scope.animation_id_seq(),
                                                   num_frames,
                                                   {
@@ -1023,30 +1053,6 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         $scope.send_control_message(new messages.Layout($scope.client_id));
     };
 
-    $scope.onDiscoverButton = function (button) {
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://" + window.location.host + "/api/v1/job_templates/7/launch/", true);
-        xhr.onload = function () {
-            console.log(xhr.readyState);
-        };
-        xhr.onerror = function () {
-            console.error(xhr.statusText);
-        };
-        xhr.send();
-    };
-
-    $scope.onConfigureButton = function (button) {
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://" + window.location.host + "/api/v1/job_templates/9/launch/", true);
-        xhr.onload = function () {
-            console.log(xhr.readyState);
-        };
-        xhr.onerror = function () {
-            console.error(xhr.statusText);
-        };
-        xhr.send();
-    };
-
     $scope.onTogglePhysical = function () {
         $scope.hide_links = false;
     };
@@ -1105,6 +1111,36 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         $scope.test_results = [];
         $scope.current_tests = $scope.tests.slice();
         $scope.first_channel.send("EnableTest", new messages.EnableTest());
+    };
+
+    $scope.onCompileVariablesButton = function (button) {
+
+
+        function noop (response) {
+            console.log(response);
+        };
+
+        function error_handler (response) {
+
+            console.log(response);
+        };
+
+        var i = 0;
+        var variables = null;
+        for(i = 0; i < $scope.devices.length; i++) {
+            variables = $scope.devices[i].compile_variables();
+            if ($scope.devices[i].host_id !== 0) {
+                $http.put('/api/v2/hosts/' + $scope.devices[i].host_id + '/variable_data/', JSON.stringify(variables)).then(noop).catch(error_handler);
+            }
+        }
+
+        for(i = 0; i < $scope.groups.length; i++) {
+            variables = $scope.groups[i].compile_variables();
+            if ($scope.groups[i].group_id !== 0) {
+                $http.put('/api/v2/groups/' + $scope.groups[i].group_id + '/variable_data/', JSON.stringify(variables)).then(noop).catch(error_handler);
+            }
+
+        }
     };
 
     // Buttons
@@ -1193,6 +1229,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         return null;
     };
 
+
     $scope.getDeviceInterface = function(device_name, interface_name) {
 
         var i = 0;
@@ -1209,11 +1246,157 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         return null;
     };
 
+    $scope.create_template_sequences = function (sequences, template, template_context) {
+        var i = 0;
+        var template_variables  = util.nunjucks_find_variables(template);
+        for (i = 0; i < template_variables.length; i++) {
+            if (template_context[template_variables[i]] === undefined) {
+                if (sequences[template_variables[i]] === undefined) {
+                    sequences[template_variables[i]] = util.natural_numbers(0);
+                }
+                template_context[template_variables[i]] = sequences[template_variables[i]]();
+            }
+        }
+    };
+
+    $scope.create_inventory_host = function (device) {
+        if ($scope.template_building || device.template) {
+            return;
+        }
+        console.log(device);
+
+        function update_inventory () {
+            HostsService.post({inventory: $scope.inventory_id,
+                               name: device.name,
+                               variables: JSON.stringify({awx: {name: device.name,
+                                                                type: device.type}})})
+                        .then(function (res) {
+                            console.log(res);
+                            device.host_id = res.data.id;
+                            device.variables = util.parse_variables(res.data.variables);
+                            $scope.send_control_message(new messages.DeviceInventoryUpdate($scope.client_id,
+                                                                                           device.id,
+                                                                                           device.host_id));
+                        })
+                        .catch(function (res) {
+                            console.log(res);
+                        });
+        }
+
+        return HostsService.get({inventory: $scope.inventory_id,
+                          name: device.name})
+                    .then(function (res) {
+                        console.log(res);
+                        if (res.data.count === 0) {
+                            update_inventory();
+                        } else if (res.data.count === 1) {
+                            device.host_id = res.data.results[0].id;
+                            device.variables = util.parse_variables(res.data.results[0].variables);
+                            $scope.send_control_message(new messages.DeviceInventoryUpdate($scope.client_id,
+                                                                                           device.id,
+                                                                                           device.host_id));
+                        }
+                    })
+                    .catch(function (res) {
+                        console.log(res);
+                    });
+
+    };
+
+    $scope.create_inventory_group = function (group) {
+        if ($scope.template_building || group.template) {
+            return;
+        }
+        console.log(group);
+        function update_inventory () {
+            GroupsService.post({inventory: $scope.inventory_id,
+                               name: group.name,
+                               variables: JSON.stringify({awx: {name: group.name,
+                                                                type: group.type}})})
+                        .then(function (res) {
+                            console.log(res);
+                            group.group_id = res.data.id;
+                            group.variables = util.parse_variables(res.data.variables);
+                            $scope.send_control_message(new messages.GroupInventoryUpdate($scope.client_id,
+                                                                                          group.id,
+                                                                                          group.group_id));
+                        })
+                        .catch(function (res) {
+                            console.log(res);
+                        });
+        }
+        return GroupsService.get({inventory: $scope.inventory_id,
+                          name: group.name})
+                    .then(function (res) {
+                        console.log(res);
+                        if (res.data.count === 0) {
+                            update_inventory();
+                        } else if (res.data.count === 1) {
+                            group.group_id = res.data.results[0].id;
+                            group.variables = util.parse_variables(res.data.results[0].variables);
+                            $scope.send_control_message(new messages.GroupInventoryUpdate($scope.client_id,
+                                                                                          group.id,
+                                                                                          group.group_id));
+                        }
+                    })
+                    .catch(function (res) {
+                        console.log(res);
+                    });
+
+    };
+
+    $scope.create_group_association = function (group, devices) {
+        if ($scope.template_building || group.template) {
+            return;
+        }
+
+        console.log(['create_group_association', group, devices]);
+
+        function noop (response) {
+            console.log(response);
+        };
+
+        function error_handler (response) {
+            console.log(response);
+        };
+
+        var i = 0;
+        for (i = 0; i < devices.length; i ++) {
+            if (!devices[i].template) {
+                $http.post('/api/v2/groups/' + group.group_id + '/hosts/', JSON.stringify({name: devices[i].name})).then(noop).catch(error_handler);
+            }
+        }
+    };
+
+    $scope.delete_group_association = function (group, devices) {
+        if ($scope.template_building || group.template) {
+            return;
+        }
+
+        console.log(['delete_group_association', group, devices]);
+
+        function noop (response) {
+            console.log(response);
+        };
+
+        function error_handler (response) {
+            console.log(response);
+        };
+
+        var i = 0;
+        for (i = 0; i < devices.length; i ++) {
+            if (!devices[i].template) {
+                GroupsService.disassociateHost(devices[i].host_id, group.group_id).then(noop).catch(error_handler);
+            }
+        }
+    };
+
     $scope.onDeviceCreate = function(data) {
         $scope.create_device(data);
     };
 
     $scope.create_device = function(data) {
+        console.log(data);
         var device = new models.Device(data.id,
                                        data.name,
                                        data.x,
@@ -1591,7 +1774,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
 
     $scope.onToolboxItem = function (data) {
         if (data.toolbox_name === "Site") {
-            var site = JSON.parse(data.data);
+            var site = util.parse_variables(data.data);
             var i = 0;
             var j = 0;
             var site_copy = new models.Group(site.id,
@@ -1729,6 +1912,13 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
                                            device.y,
                                            device.type,
                                            device.host_id);
+
+            for (j=0; j < $scope.inventory_toolbox.items.length; j++) {
+                 if($scope.inventory_toolbox.items[j].name === device.name) {
+                     $scope.inventory_toolbox.items.splice(j, 1);
+                     break;
+                 }
+            }
             new_device.interface_seq = util.natural_numbers(device.interface_id_seq);
             new_device.process_id_seq = util.natural_numbers(device.process_id_seq);
             $scope.devices.push(new_device);
@@ -1801,6 +1991,7 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
                                          group.x2,
                                          group.y2,
                                          false);
+            new_group.group_id = group.inventory_group_id;
             if (group.members !== undefined) {
                 for (j=0; j < group.members.length; j++) {
                     new_group.devices.push(device_map[group.members[j]]);
@@ -1859,6 +2050,36 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
         $scope.updateInterfaceDots();
         $scope.$emit('instatiateSelect', $scope.devices);
         $scope.$emit('awxNet-breadcrumbGroups', $scope.breadcrumbGroups());
+        $scope.update_device_variables();
+    };
+
+    $scope.update_device_variables = function () {
+
+      var hosts_by_id = {};
+      var i = 0;
+      for (i = 0; i < $scope.devices.length; i++) {
+          hosts_by_id[$scope.devices[i].host_id] = $scope.devices[i];
+      }
+
+      $http.get('/api/v2/inventories/' + $scope.inventory_id + '/hosts/')
+           .then(function(response) {
+               let hosts = response.data.results;
+               for(var i = 0; i<hosts.length; i++){
+                   try {
+                       let host = hosts[i];
+                       if (hosts_by_id[host.id] !== undefined) {
+                           hosts_by_id[host.id].variables = util.parse_variables(host.variables);
+                       }
+                   } catch (error) {
+                       console.log(error);
+                   }
+               }
+           })
+           .catch(({data, status}) => {
+               console.log([data, status]);
+               ProcessErrors($scope, data, status, null, { hdr: 'Error!', msg: 'Failed to get host data: ' + status });
+           });
+
     };
 
     $scope.updateInterfaceDots = function() {
