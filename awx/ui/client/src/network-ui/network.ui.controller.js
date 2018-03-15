@@ -38,9 +38,17 @@ var NetworkUIController = function($scope, $document, $location, $window, $http,
 
   $scope.inventory_id = $state.params.inventory_id;
 
+  var protocol = null;
+
+  if ($location.protocol() === 'http') {
+    protocol = 'ws';
+  } else if ($location.protocol() === 'https') {
+    protocol = 'wss';
+  }
+
   $scope.initial_messages = [];
   if (!$scope.disconnected) {
-      $scope.control_socket = new ReconnectingWebSocket("wss://" + window.location.host + "/network_ui/topology?inventory_id=" + $scope.inventory_id,
+      $scope.control_socket = new ReconnectingWebSocket(protocol + "://" + window.location.host + "/network_ui/topology?inventory_id=" + $scope.inventory_id,
                                                          null,
                                                          {debug: false, reconnectInterval: 300});
   } else {
